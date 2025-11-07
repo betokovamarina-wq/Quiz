@@ -2,179 +2,142 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Простой Квиз</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Квиз</title>
   <style>
     * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       margin: 0; padding: 24px;
-      line-height: 1.5;
-      background: #f7f7fb;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #f7f7fb; color: #111;
     }
     .container {
-      max-width: 640px; margin: 0 auto;
-      background: #fff; border-radius: 12px; padding: 20px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      max-width: 760px; margin: 0 auto;
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.06);
+      padding: 28px;
     }
-    h1 { margin: 0 0 8px; font-size: 22px; }
-    .meta { color: #555; margin-bottom: 16px; }
-    .progress-wrap {
-      width: 100%; height: 8px; background: #eee; border-radius: 999px; overflow: hidden; margin: 8px 0 16px;
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .meta { color:#666; margin: 0 0 16px; }
+
+    .progress {
+      width: 100%; height: 8px; border-radius: 99px;
+      background: #eee; overflow: hidden; margin: 12px 0 20px;
     }
-    .progress { height: 100%; width: 0%; background: #4b7bec; transition: width .3s ease; }
+    .bar { height: 100%; width: 0%; background: #4b7bec; transition: width .25s; }
+
     .card {
-      border: 1px solid #eee; border-radius: 12px; padding: 16px; margin-bottom: 16px;
+      border: 1px solid #eee; border-radius: 16px;
+      padding: 18px; margin-bottom: 18px;
     }
-    .question { font-weight: 600; margin-bottom: 12px; }
-    .options { display: grid; gap: 10px; }
-    .option {
-      display: flex; gap: 10px; align-items: start;
-      border: 1px solid #e6e6e9; border-radius: 10px; padding: 12px;
-      cursor: pointer; background: #fafafa;
+    .question { font-size: 20px; font-weight: 700; margin: 0 0 12px; }
+
+    .answers { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+    label.answer {
+      display: flex; align-items: center; gap: 12px;
+      border: 1px solid #e9e9ef; border-radius: 12px;
+      padding: 14px 16px; cursor: pointer; transition: .15s;
+      background: #fafbff;
     }
-    .option:hover { background: #f0f4ff; }
-    .option input { margin-top: 2px; }
-    .controls { display: flex; gap: 10px; }
+    label.answer:hover { border-color: #d7dbff; background: #f4f6ff; }
+    input[type="radio"] { width: 18px; height: 18px; }
+
+    .controls { display: flex; gap: 12px; margin-top: 12px; }
     button {
-      border: 0; padding: 12px 16px; border-radius: 10px; cursor: pointer;
-      font-weight: 600;
+      border: 0; padding: 12px 18px; font-weight: 600;
+      border-radius: 10px; cursor: pointer;
     }
-    .primary { background: #4b7bec; color: #fff; }
-    .secondary { background: #efefef; }
+    .primary { background:#4b7bec; color:#fff; }
+    .primary:disabled { opacity:.5; cursor:not-allowed; }
+    .secondary { background:#efefef; }
+
     .hidden { display: none; }
-    .result {
-      text-align: center;
-    }
+    .center { text-align: center; }
+
     .badge {
-      display: inline-block;
-      padding: 6px 10px; border-radius: 999px; font-size: 12px;
-      background: #e8f1ff; color: #2d67ff; margin-bottom: 8px;
+      display:inline-block; padding:6px 10px; border-radius:999px;
+      background:#e8f1ff; color:#2d67ff; font-size:12px; font-weight:700;
     }
-    .small { font-size: 12px; color: #666; }
-    .footer { margin-top: 10px; color: #777; font-size: 12px; text-align: center; }
+    .result h2 { margin: 0 0 6px; font-size: 24px; }
+    .result p { margin: 6px 0 0; color:#444; }
+    .footer { margin-top: 10px; color:#888; font-size: 12px; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="app">
     <h1>Квиз</h1>
-    <div class="meta"><span id="counter">Вопрос 1 из 5</span></div>
-    <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+    <p class="meta" id="step">Вопрос 1 из 5</p>
+    <div class="progress"><div class="bar" id="bar"></div></div>
 
-    <div id="quiz-card" class="card">
-      <div id="question" class="question">…</div>
-      <div id="options" class="options"></div>
+    <div id="quizArea">
+      <div class="card">
+        <p class="question" id="questionText">…</p>
+        <ul class="answers" id="answers"></ul>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="nextBtn" disabled>Далее</button>
+      </div>
     </div>
 
-    <div class="controls">
-      <button id="nextBtn" class="primary" disabled>Далее</button>
-      <button id="restartBtn" class="secondary hidden">Сначала</button>
+    <div id="resultArea" class="result hidden center">
+      <span class="badge" id="scoreBadge">0 из 0 (0%)</span>
+      <h2 id="resultTitle">Готово!</h2>
+      <p id="resultText">Ваш результат.</p>
+      <div class="controls center" style="justify-content:center; margin-top:16px;">
+        <button class="secondary" id="restartBtn">Сначала</button>
+      </div>
     </div>
 
-    <div id="result" class="result hidden">
-      <div id="badge" class="badge">Результат</div>
-      <h2 id="scoreText">0/0</h2>
-      <p id="comment">…</p>
-    </div>
-
-    <div class="footer">
+    <p class="footer center">
+      Вопросы редактируются в коде (массив <code>QUESTIONS</code>).
+    </p>
   </div>
 
   <script>
-    // === 1) Редактируйте вопросы тут ===
-    // Каждая запись: { text: 'вопрос', answers: ['A','B','C','D'], correctIndex: 1 }
+    // --- 1) ВОПРОСЫ ---
     const QUESTIONS = [
-      { text: 'Сколько будет 2 + 2?', answers: ['3', '4', '5', '22'], correctIndex: 1 },
-      { text: 'Столица Финляндии?', answers: ['Турку', 'Тампере', 'Хельсинки', 'Оулу'], correctIndex: 2 },
-      { text: 'Какой цвет получится, если смешать синий и жёлтый?', answers: ['Фиолетовый', 'Зелёный', 'Оранжевый', 'Коричневый'], correctIndex: 1 },
-      { text: 'Сколько секунд в одной минуте?', answers: ['60', '100', '30', '90'], correctIndex: 0 },
-      { text: 'Какой тег в HTML для самой крупной шапки?', answers: ['h6', 'head', 'title', '<h1'], correctIndex: 3 }
+      {
+        q: "Сколько будет 2 + 2?",
+        answers: ["3", "4", "5", "22"],
+        correct: 1
+      },
+      {
+        q: "Какой тег задаёт самый крупный заголовок в HTML?",
+        answers: ["<h1>", "<h6>", "<title>", "<header>"],
+        correct: 0
+      },
+      {
+        q: "Как открыть ссылку в новой вкладке?",
+        answers: ['Через атрибут rel', 'Добавить target="_blank"', 'Только через CSS', 'Это невозможно'],
+        correct: 1
+      },
+      {
+        q: "Какое расширение у HTML-файла?",
+        answers: [".css", ".js", ".html", ".json"],
+        correct: 2
+      },
+      {
+        q: "CSS — это…",
+        answers: [
+          "Cascading Style Sheets",
+          "Computer Styled Sections",
+          "Creative Style System",
+          "Colorful Style Sheet"
+        ],
+        correct: 0
+      }
     ];
 
-    // === 2) Логика квиза ===
-    let index = 0;
-    let score = 0;
-    let selected = null;
-
-    const questionEl = document.getElementById('question');
-    const optionsEl = document.getElementById('options');
-    const counterEl = document.getElementById('counter');
-    const progressEl = document.getElementById('progress');
-    const nextBtn = document.getElementById('nextBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const resultWrap = document.getElementById('result');
-    const scoreText = document.getElementById('scoreText');
-    const comment = document.getElementById('comment');
-    const badge = document.getElementById('badge');
-
-    function renderQuestion() {
-      const total = QUESTIONS.length;
-      counterEl.textContent = `Вопрос ${index + 1} из ${total}`;
-      progressEl.style.width = `${((index) / total) * 100}%`;
-
-      const q = QUESTIONS[index];
-      questionEl.textContent = q.text;
-      optionsEl.innerHTML = '';
-      nextBtn.disabled = true;
-      selected = null;
-
-      q.answers.forEach((ans, i) => {
-        const label = document.createElement('label');
-        label.className = 'option';
-        label.innerHTML = `
-          <input type="radio" name="opt" value="${i}" />
-          <span>${ans}</span>
-        `;
-        label.addEventListener('click', () => {
-          selected = i;
-          nextBtn.disabled = false;
-        });
-        optionsEl.appendChild(label);
-      });
+    // --- 2) СООБЩЕНИЕ ПО РЕЗУЛЬТАТАМ ---
+    function resultMessage(score, total) {
+      const pct = Math.round((score / total) * 100);
+      if (pct === 100) return { title: "Блестяще! 💎", text: "Идеально. Можно вести мастер-класс." };
+      if (pct >= 80)  return { title: "Супер! 🔥", text: "Отличный уровень. Ещё немного — и топ." };
+      if (pct >= 60)  return { title: "Хорошо! 👍", text: "Есть, что подтянуть — и будет супер." };
+      if (pct >= 40)  return { title: "Неплохо 🙂", text: "Двигаемся верно. Пара повторений — и вперёд." };
+      return { title: "Стартуем 🚀", text: "Не страшно. Первый шаг сделан — продолжай!" };
     }
 
-    function resultMessage(score, total) {
-  const pct = Math.round((score / total) * 100);
-  if (pct === 100) return "Идеально! 🔥 Ты прошёл(ла) квиз без ошибок.";
-  if (pct >= 80)  return "Отлично! ✨ Почти максимум.";
-  if (pct >= 60)  return "Хорошо. Есть, что подтянуть — и будет супер.";
-  if (pct >= 40)  return "Неплохо для начала. Продолжим?";
-  return "Это только разогрев. Попробуешь ещё раз?";
-}
-
-      comment.textContent = text;
-
-      badge.textContent = 'Готово';
-      resultDiv.innerHTML = `
-  <h2>Квиз завершён</h2>
-  <p>${score} из ${QUESTIONS.length} (${percent}%)</p>
-  <p>${resultMessage(score, QUESTIONS.length)}</p>
-`;
-
-
-    nextBtn.addEventListener('click', () => {
-      if (selected === null) return;
-      const q = QUESTIONS[index];
-      if (selected === q.correctIndex) score++;
-      index++;
-      if (index < QUESTIONS.length) {
-        renderQuestion();
-      } else {
-        finish();
-      }
-    });
-
-    restartBtn.addEventListener('click', () => {
-      index = 0; score = 0; selected = null;
-      resultWrap.classList.add('hidden');
-      restartBtn.classList.add('hidden');
-      nextBtn.classList.remove('hidden');
-      document.getElementById('quiz-card').classList.remove('hidden');
-      renderQuestion();
-    });
-
-    // Старт
-    renderQuestion();
-  </script>
-</body>
-</html>
+    // --- 3) ЛОГИКА КВИЗА ---
+    const stepEl = document.getE
